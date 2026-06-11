@@ -1,0 +1,301 @@
+********* Go Through this documentation once before going through my project ************
+
+Sockets
+
+-> a socket is one end of a connection
+-> it is a combination of both IP address + port number
+
+
+--------------------------------------------------------
+Protocols: It is nothing but communication rules. Here there will be some rules like how to send the data like in which format and how to receive and all how many packets need to send and receive.
+-> Here we learn mainly about 2 protocols 
+	TCP(Transmission control protocol) - when we browse in internet we use this TCP. It is 	reliable, slow
+	UDP(User datagram protocol) - faster than TCP and less reliable. we need fast communication in case of video calls because here we need speed of sending packets
+-> TCP is connection based and UDP is of Connection less protocols
+
+---------------------------------------------------------
+WebRTC
+
+-> One of most common use of UDP is of WebRTC. which is used for video communication
+-> WebRTC - web real time communication 
+-> These are mainly built on UDP. These WebRTC works on bidirectional 
+-> Here without WebRTC we send videos like from A to server and from server to B and vice versa. But using WebRTC it will establish an bidirectional connection between A and B. We use server based communication when reliability required. 
+
+How does it work?
+As said above to establish connection between the two machines like A and B in the above we will use four steps
+Signalling, Connecting, Securing and Communicating 
+
+1) Signalling - here we have one signalling server inside which have SDP. Here initially we send request to this signalling server. and this establish the connection between the machines. here for connecting between the two machines it uses IP addresses.
+2) Connecting - Here we use ICE (Internet connectivity Establishment) protocol. This protocol takes the IP address and help in establishment of connection 
+3) Securing - Here we use two protocols DLTS and SRTP. First here we secure the connection before sending data. Here we use the concept of encryption.
+4) Communicating  - Here at last now we start communication. Here we uses protocols like RTP and SCTP. 
+-> WebRTC as a technology not needed to be implemented from scratch it is already implemented. we can use it using the API's. 
+
+MediaStream - Which is an API used to collect video and audio from our device. 
+RTCPeerConnection and RTCDataChannel - using these we establish data communication between the client. 
+
+WebRTC Architectures 
+-> there are diff architectures where this WebRTC is implemented in those we use the following (P2P, SFU and MCU)
+-> we use Peer to Peer -> think of there are 4 computers here each system is connected to another system. Here is there will be no server and whole load is completely on the client
+-> Here for each individual system there will be some bandwidth and connection capacity. 
+-> In SFU (Server forwarding unit) here there will be an additional server inside. here every client send data to server and this server will send data to the client. 
+
+WebRTC APIs
+-> WebRTC standards covers on a two high level technologies like media capture devices and peer to peer connectivity 
+-> here media capture devices include cameras and microphones and screen capturing devices. for cameras and microphones we use navigator.nediaDevices.getUserMedia() to capture media streams and for screen records we use navigator.mediaDevices.getDisplayMedia()
+-> For the peer to peer connectivity handled by RTCPeerConnection interface. This is the central point or establishing and controlling the connection between two peers in WebRTC
+
+---------------------------------------------------------------------------------------------------------
+
+Getting started with media devices
+
+-> As discussed above we use navigate.mediaDevices to get connect with the media devices here we use the function mainly getUserMedia()
+-> This function returns a promise to resolve media stream matching devices. 
+-> This function mainly uses the object MediaStreamConstraints object that specifies the requirements that we have. 
+
+to simply open the microphone and camera we do as the following
+
+	const constraints = {
+		'video' : true,
+		'audio' : true
+	};
+
+	navigator.mediaDevices.getUserMedia(constraints)
+		.then(stream => {
+			console.log('Got MediaStream:', stream);
+		})
+		.catch(error => {
+			console.error('Error accessing media devices.', error);
+		})
+
+-> The call to getUserMedia() will trigger a permissions request. If the user accepts the permission, the promise is resolved with a MediaStream containing one video and one audio track. If the permission is denied, a PermissionDeniedError is thrown. 
+-> In case there are no matching devices connected, a NotFoundError will be thrown.
+
+-----------------------------------------------------------------------------------------------------------
+Querying media devices
+-> In some applications we need to check all the connected devices to the user to provide the feedback. this can be done by using enumerateDevices()
+-> this will return a promise that resolves to an array of MediaDevicesInfo. here it describes each know devices.
+-> here we will present it to the user and allows him to pick one deevices upon his choice
+-> Each MediaDevicesInfo contains a property named kind with the value audioinput, audiooutput or videoinput, indicating what type of media device it is.
+		function getConnectedDevices(type, callback){
+			navigator.mediaDevices.enumeratedDevices()
+				.then(devices => {
+					const filtered = devices.filter(device => device.king === type)
+					callback(filtered)
+				});
+		}
+		getConnectedDevices('videoinput', cameras => console.log('Cameras found', cameras));
+
+------------------------------------------------------------------------------------------------------------
+Listening for devices changes
+-> many computers have different plugins of devices like cameras and microphones. Here to support all those plugins web application should listen fofr change of media devices.
+-> This can be done by adding listener to the navigator.mediaDevices
+	function getConnectedDevices(type){
+		navigator.mediaDevices.enumerateDevices()
+			.then(devices => {
+				const filtered = devices.filter(device => device.kind === type);
+				updateCameraList(filtered);	
+			});
+	}
+
+	function updateCameraList(cameras){
+		const listElement = document.querySelector(select#availableCameras);
+		if(!listElement) return;
+		listElement.innerHTML = '';
+		
+		cameras.map(camera=>{
+			const cameraOption = document.createElement("option");
+			cameraOption.label = camera.label;
+			cameraOption.value = camera.deviceid;
+			return cameraOption;
+		})
+		.forEach(cameraOption => listElement.add(cameraOption));
+	}
+
+	navigator.mediaDevices.addEventListener('devicechange', event => {
+    		getConnectedDevices('videoinput');
+	});
+
+-------------------------------------------------------------------------------
+
+Media constraints
+-> getUserMedia() takes a constraints object that defines the required audio and video settings.
+-> Constraints can be general (audio/video) or specific (particular device using deviceId, resolution, etc.).
+-> It is recommended to first get available devices using enumerateDevices() and then use the required device's deviceId in the constraints.
+-> Constraints can also configure devices, such as enabling echo cancellation and setting minimum/exact video width and height.
+-> The browser tries to open and configure the media device according to the specified constraints.
+
+
+    // async function openCamera(cameraId, minWidth, minHeight) {
+    //     const constraints = {
+    //         'audio': { 'echoCancellation': true },
+    //         'video': {
+    //             'deviceId': cameraId,
+    //             'width': { 'min': minWidth },
+    //             'height': { 'min': minHeight }
+    //         }
+    //     };
+
+    //     return await navigator.mediaDevices.getUserMedia(constraints);
+    // }
+
+    // async function startCamera() {
+    //     const cameras = await getConnectedDevices('videoinput');
+
+    //     if (cameras.length > 0) {
+    //         // Open first available video camera with a resolution of 1280x720 pixels
+    //         const stream = await openCamera(
+    //             cameras[0].deviceId,
+    //             1280,
+    //             720
+    //         );
+
+    //         console.log(stream);
+
+    //         const video = document.getElementById('localVideo');
+
+    //         if (video) {
+    //             video.srcObject = stream;
+    //         }
+    //     }
+    // }
+
+    // setTimeout(() => {
+    //     startCamera();
+    // }, 100);
+	
+
+
+----------------------------------------------------------------------
+
+Getting started with peer connections
+
+-> Peer connections is the part of the WebRTC specifications that deals with connecting two applications on different computers to communicate using a peer-to-peer protocol.
+-> The communication between peers can be video, audio or arbitrary binary data (for clients supporting the RTCDataChannel API).
+-> In order to discover how two peers can connect, both clients need to provide an ICE Server configuration
+-> This is either a STUN or a TURN-server, and their role is to provide ICE candidates to each client which is then transferred to the remote peer.
+-> This transferring of ICE candidates is commonly called signaling
+
+ICE (Interactive Connectivity Establishment)
+-> ICE helps two peers discover how to connect over a network.
+-> Each peer must be provided with an ICE server configuration.
+-> ICE servers generate connection information called ICE Candidates.
+-> ICE Candidates represent possible network paths that can be used to establish a connection.
+
+STUN Server
+-> A STUN server helps a device discover its public IP address and network information.
+-> It is used when a direct peer-to-peer connection is possible.
+-> The information obtained from the STUN server is used to generate ICE candidates.
+TURN Server
+-> A TURN server relays data between peers when a direct connection cannot be established.
+-> It is used in cases such as strict NATs, firewalls, or network restrictions.
+-> Audio, video, and data pass through the TURN server.
+
+ICE Candidates
+-> ICE Candidates are possible connection paths generated using STUN or TURN servers.
+Each peer collects its ICE candidates.
+-> These candidates must be shared with the remote peer before a connection can be established.
+
+signalling
+-> Signaling is the process of exchanging connection information between peers before the actual WebRTC connection is established.
+	Step 1: Exchange connection details
+	Step 2: Establish WebRTC connection
+	Step 3: Start video/audio communication
+-> WebRTC provides api for Capturing camera and microphone, Creating peer connections, ICE candidate generation, Audio/video streaming
+How signalling is done? Most applications use a server.
+Examples: REST API, WebSocket Server, RPC Service
+In our project: React Frontend + Spring Boot WebSocket Server
+
+WebRTC Connection Flow
+	-> Create a peer connection.
+	-> Configure STUN/TURN servers.
+	-> Gather ICE candidates.
+	-> Create and send an SDP Offer.
+	-> Receive and process an SDP Answer.
+	-> Exchange ICE candidates through the signaling server.
+	-> Establish the peer-to-peer connection.
+	-> Start audio, video, or data communication.
+
+Peer A
+   ↓
+Gather ICE Candidates (STUN/TURN)
+   ↓
+Create Offer
+   ↓
+Send via Signaling Server
+   ↓
+Peer B
+   ↓
+Create Answer
+   ↓
+Send via Signaling Server
+   ↓
+Exchange ICE Candidates
+   ↓
+Peer Connection Established
+   ↓
+Audio / Video / Data Communication
+
+------------------------------------------------------------------
+
+Initiating peer connection
+
+-> Each peer connection is handled by RTCPeerConnection object. 
+-> the constructor of this class takes a single RTCConfiguration object as parameter. 
+-> This Object defines how the peer connection is set up  and should contain information about the ICE servers to use
+-> once this is created we will create an sdp offer or answer depending on if we are calling peer or receiving peer
+-> once this offer or answer is created then it will be sent to remote peer through diff channels. passing this is called signalling
+-> to initiate this peer connection setup from calling side we create RTCPeerConnection and then we call createOffer() to create RTCSessionDescriptionObject
+-> this description is set using setLocalDescription() and then over our signalling channel to the receiving side. 
+-> We also set up a listener to our signaling channel for when an answer to our offered session description is received from the receiving side.
+
+async function makeCall() {
+    const configuration = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+    const peerConnection = new RTCPeerConnection(configuration);
+    signalingChannel.addEventListener('message', async message => {
+        if (message.answer) {
+            const remoteDesc = new RTCSessionDescription(message.answer);
+            await peerConnection.setRemoteDescription(remoteDesc);
+        }
+    });
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    signalingChannel.send({'offer': offer});
+}
+
+
+-> On the receiving side we wait for an incoming offer before we create our RTCPeerConnection instance. 
+Once we received we set the received offer as setRemoteDescription()
+-> next we call createAnswer() to create an answer to received offer
+-> then again we set the answer as local description and sent to the calling side over signalling server
+
+const peerConnection = new RTCPeerConnection(configuration);
+signalingChannel.addEventListener('message', async message => {
+    if (message.offer) {
+        peerConnection.setRemoteDescription(new RTCSessionDescription(message.offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        signalingChannel.send({'answer': answer});
+    }
+});
+
+
+-> Once the two peers have set both the local and remote session descriptions they know the capabilities of the remote peer
+-> This doesn't mean that the connection between the peers is ready. For this to work we need to collect the ICE candidates at each peer and transfer 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

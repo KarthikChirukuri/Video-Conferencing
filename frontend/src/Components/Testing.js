@@ -2,18 +2,18 @@ import React from 'react';
 
 function Testing() {
 
-    // const constraints = {
-    //     'video': true,
-    //     'audio': true
-    // }
+    const constraints = {
+        'video': true,
+        'audio': true
+    }
 
-    // navigator.mediaDevices.getUserMedia(constraints)
-    //     .then(stream => {
-    //         console.log('Got MediaStream:', stream);
-    //     })
-    //     .catch(error => {
-    //         console.error('Error accessing media devices.', error);
-    //     });
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+            console.log('Got MediaStream:', stream);
+        })
+        .catch(error => {
+            console.error('Error accessing media devices.', error);
+        });
 
     // -------------------------------------------------------------------------------------------------
 
@@ -65,48 +65,48 @@ function Testing() {
 
     // -----------------------------------------------------------------------------------------------
 
-    // async function getConnectedDevices(type) {
-    //     const devices = await navigator.mediaDevices.enumerateDevices();
-    //     return devices.filter(device => device.kind === type);
-    // }
+    async function getConnectedDevices(type) {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return devices.filter(device => device.kind === type);
+    }
 
-    // async function openCamera(cameraId, minWidth, minHeight) {
-    //     const constraints = {
-    //         'audio': { 'echoCancellation': true },
-    //         'video': {
-    //             'deviceId': cameraId,
-    //             'width': { 'min': minWidth },
-    //             'height': { 'min': minHeight }
-    //         }
-    //     };
+    async function openCamera(cameraId, minWidth, minHeight) {
+        const constraints = {
+            'audio': { 'echoCancellation': true },
+            'video': {
+                'deviceId': cameraId,
+                'width': { 'min': minWidth },
+                'height': { 'min': minHeight }
+            }
+        };
 
-    //     return await navigator.mediaDevices.getUserMedia(constraints);
-    // }
+        return await navigator.mediaDevices.getUserMedia(constraints);
+    }
 
-    // async function startCamera() {
-    //     const cameras = await getConnectedDevices('videoinput');
+    async function startCamera() {
+        const cameras = await getConnectedDevices('videoinput');
 
-    //     if (cameras.length > 0) {
-    //         // Open first available video camera with a resolution of 1280x720 pixels
-    //         const stream = await openCamera(
-    //             cameras[0].deviceId,
-    //             1280,
-    //             720
-    //         );
+        if (cameras.length > 0) {
+            // Open first available video camera with a resolution of 1280x720 pixels
+            const stream = await openCamera(
+                cameras[0].deviceId,
+                1280,
+                720
+            );
 
-    //         console.log(stream);
+            console.log(stream);
 
-    //         const video = document.getElementById('localVideo');
+            const video = document.getElementById('localVideo');
 
-    //         if (video) {
-    //             video.srcObject = stream;
-    //         }
-    //     }
-    // }
+            if (video) {
+                video.srcObject = stream;
+            }
+        }
+    }
 
-    // setTimeout(() => {
-    //     startCamera();
-    // }, 100);
+    setTimeout(() => {
+        startCamera();
+    }, 100);
 
     // Client A
 // const clientA = {

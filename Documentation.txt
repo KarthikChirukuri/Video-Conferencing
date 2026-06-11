@@ -281,7 +281,34 @@ signalingChannel.addEventListener('message', async message => {
 
 
 -> Once the two peers have set both the local and remote session descriptions they know the capabilities of the remote peer
--> This doesn't mean that the connection between the peers is ready. For this to work we need to collect the ICE candidates at each peer and transfer 
+-> This doesn't mean that the connection between the peers is ready. For this to work we need to collect the ICE candidates at each peer and transfer.
+
+-------------------------------------------------------------------
+
+-> Now we will be into the big picture 
+	Step 1: Create Offer
+	Step 2: Send Offer
+	Step 3: Create Answer
+	Step 4: Send Answer
+	Step 5: Exchange ICE Candidates
+	Step 6: Connection Established
+-> Here in above process now we are at the step 5
+
+ICE Candidates?
+Suppose User A is on: Home WiFi | Private IP: 192.168.1.10 | Public IP: 49.x.x.x
+User B is on: Office Network | Private IP: 192.168.0.20 | Public IP: 103.x.x.x
+-> Now WebRTC must discover how can use A reach User B? and User B reach User A?
+-> Here the possible routes are called ICE candidates.
+
+What happens after RTCPeerConnection is created?
+-> when we wrote const peerConnection = new RTCPeerConnectin(configuration) WebRTC will automatically starts asking STUN server, TURN server and Local network. This process is called ICE gathering.
+-> There are three states in ICE gathering new(ICE gathering not started), gathering(sreaching for candidates) and complete(All candidates found)
+-> Traditional method wait for ICE gathering complete and then send all candidates. here the process will  be slow
+-> So we use this Trickle ICE concept instead if waiting. 
+	candidate 1 found -> send immedieatly -> candidate 2 Found -> Send immediately -> candidate 3 Found -> send immedieatly 
+-> 
+
+
 
 
 
